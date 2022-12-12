@@ -83,12 +83,12 @@ fn main() -> io::Result<()> {
                 if metadata.is_file() {
                     match fs::remove_file(path) {
                         Ok(_) => println!("rm: removed '{}'", path),
-                        Err(err) => println!("rm: failed to remove '{}': {}", path, err),
+                        Err(_) => println!("rm: failed to remove '{}'", path),
                     }
                 } else if metadata.is_dir() {
                     match fs::remove_dir_all(path) {
                         Ok(_) => println!("rm: removed '{}'", path),
-                        Err(err) => println!("rm: failed to remove '{}': {}", path, err),
+                        Err(_) => println!("rm: failed to remove '{}'", path),
                     }
                 }
             },
