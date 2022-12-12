@@ -4,8 +4,6 @@ use std::io::{self, Read, Write};
 use std::os::windows::ffi::OsStrExt;
 use std::process::{Command, Stdio};
 use winapi::um::wincon::SetConsoleTitleW;
-// extern crate libc;
-// use libc::geteuid;
 
 fn main() -> io::Result<()> {
     // Set the console title
@@ -18,16 +16,6 @@ fn main() -> io::Result<()> {
 
     io::stdout().flush().unwrap();
 
-
-    //Checks if the current user has administrator privileges.
-    /*
-    let euid = unsafe { geteuid() };
-    if euid == 0 {
-        println!("The current user is an administrator.");
-    } else {
-        println!("The current user is not an administrator.");
-    }
-*/
     // Print the lines
     let lines = [
         "     /$$$$$$$   /$$$$$$  /$$   /$$ /$$$$$$$$ /$$       /$$      ",
@@ -83,12 +71,22 @@ fn main() -> io::Result<()> {
                 if metadata.is_file() {
                     match fs::remove_file(path) {
                         Ok(_) => println!("rm: removed '{}'", path),
-                        Err(_) => println!("rm: failed to remove '{}'", path),
+                        Err(err) => {
+                            // Handle the error here
+                            println!("rm: failed to remove '{}': {}", path, err);
+                            // Continue execution
+                            continue;
+                        }
                     }
                 } else if metadata.is_dir() {
                     match fs::remove_dir_all(path) {
                         Ok(_) => println!("rm: removed '{}'", path),
-                        Err(_) => println!("rm: failed to remove '{}'", path),
+                        Err(err) => {
+                            // Handle the error here
+                            println!("rm: failed to remove '{}': {}", path, err);
+                            // Continue execution
+                            continue;
+                        }
                     }
                 }
             },
