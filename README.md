@@ -1,3 +1,3 @@
 # Nothing
 
-RShell Made With Rust
+rshell made with Rust
