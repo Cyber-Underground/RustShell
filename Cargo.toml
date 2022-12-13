@@ -8,4 +8,7 @@ edition = "2021"
 [dependencies]
 winit = "0.27.5"
 winapi = { version = "0.3.9", features = ["winuser","wincontypes","wincon"] }
+rusty_password = "0.1.2"
 # libc = { version = "0.2.138", features = ["geteuid"] }
+colored = "^1.9"
+base64 = "0.20.0"

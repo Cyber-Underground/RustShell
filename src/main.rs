@@ -1,11 +1,17 @@
 use std::ffi::OsStr;
 use std::fs;
-use std::io::{self, Read, Write};
+use std::io::{self, Read, Write, stdout};
 use std::os::windows::ffi::OsStrExt;
 use std::process::{Command, Stdio};
 use winapi::um::wincon::SetConsoleTitleW;
+use colored::*;
+use std::env;
 
 fn main() -> io::Result<()> {
+    // Clear the command prompt
+    print!("{}[2J", 27 as char);
+    stdout().flush().unwrap();
+
     // Set the console title
     let new_title = "Nothing";
     let title: Vec<u16> = OsStr::new(new_title)
@@ -30,12 +36,13 @@ fn main() -> io::Result<()> {
     ];
 
     for line in &lines {
-        println!("{}", line);
+        println!("{}", line.bright_magenta());
     }
 
     print!("    rshell> ");
     io::stdout().flush()?;
 
+/*
     loop {
         // Read a line of input from the user
         let mut input = String::new();
@@ -55,10 +62,7 @@ fn main() -> io::Result<()> {
         let command = words[0];
         let args = &words[1..];
 
-        if command == "exit" {
-            // If the user entered the "exit" command, break out of the loop and end the program
-            break;
-        } else if command == "rm" {
+        if command == "rm" {
     // If the user entered the "rm" command, delete the specified file or directory
     if args.len() != 1 {
         println!("rm: missing operand");
@@ -150,6 +154,6 @@ fn main() -> io::Result<()> {
             continue;
         }
     }
-
+*/
     Ok(())
 }
