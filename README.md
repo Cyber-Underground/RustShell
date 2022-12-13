@@ -1,3 +1,3 @@
 # Nothing
 
-rshell made with Rust
+A red team tool made with Rust
