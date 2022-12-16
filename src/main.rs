@@ -152,7 +152,7 @@ fn main() -> io::Result<()> {
         
         match command {
             "exit" => break,
-            "rm" | "remove" => {
+            "rm" | "del" => {
                 // Get the first argument after the `rm` command, which should be the path to the file or directory to be deleted
                 let arg = parts.next().unwrap_or("");
                 match fs::remove_dir_all(arg) {
