@@ -2,44 +2,12 @@
 
 use std::io::{self, Write, stdout};
 use std::ffi::OsStr;
-use std::fs;
 use std::os::windows::ffi::OsStrExt;
 use winapi::um::wincon::SetConsoleTitleW;
 use colored::*;
-use std::path::Path;
 use std::{time::Duration};
 
-// This function recursively prints the contents of a directory in a tree view-like format.
-// The `indent` parameter controls the amount of indentation for each level of the tree.
-fn print_directory_tree(path: &Path, indent: usize) {
-    // Print the name of the current directory, indented by the specified amount
-    println!("{:indent$}{}", "", path.to_string_lossy(), indent = indent * 4);
-
-    // Exit the function if the current indent level is greater than or equal to 2
-    // Change the indent value to make it search further
-    
-    if indent >= 3 {
-        return;
-    }
-    
-    // Get an iterator over the entries in the directory
-    let entries = fs::read_dir(path).unwrap();
-
-    // Iterate over the entries in the directory
-    for entry in entries {
-        // Get the path of the entry
-        let entry_path = entry.unwrap().path();
-
-        // If the entry is a directory, recursively print its contents
-        if entry_path.is_dir() {
-            print_directory_tree(&entry_path, indent + 0);
-        }
-        // Otherwise, just print the name of the entry
-        else {
-            println!("{:indent$}{}", "", entry_path.display(), indent = (indent + 1) * 4);
-        }
-    }
-}
+mod functions;
 
 fn main() -> io::Result<()> {
     ansi_term::enable_ansi_support().unwrap();
@@ -151,45 +119,14 @@ fn main() -> io::Result<()> {
         }
         
         match command {
-            "exit" => break,
+            "exit" => {
+                break;
+            }
             "rm" | "del" => {
-                // Get the first argument after the `rm` command, which should be the path to the file or directory to be deleted
-                let arg = parts.next().unwrap_or("");
-                match fs::remove_dir_all(arg) {
-                    // If the directory or file was successfully deleted, move on to the next one
-                    Ok(_) => continue,
-                    // If the error is that the path does not exist, print an error message and move on to the next one
-                    Err(ref e) if e.kind() == io::ErrorKind::NotFound => {
-                        println!("        rm: {}: No such file or directory", arg);
-                        continue;
-                    }
-                    // If the error is that the file cannot be deleted, print an error message and move on to the next one
-                    Err(ref e) if e.kind() == io::ErrorKind::PermissionDenied => {
-                        println!("        rm: {}: Cannot delete file: permission denied", arg);
-                        continue;
-                    }
-                    // If the error is something other than the path not existing or permission denied, print the error and move on to the next one
-                    Err(e) => {
-                        eprintln!("        rm: {}: {}", arg, e);
-                        continue;
-                    }
-                }
+                functions::remove();
             }
             "files" => {
-                // Get the directory and indent level from the command line arguments
-                let mut args = std::env::args_os();
-
-                let directory = std::env::args().nth(1).unwrap_or_else(|| ".".to_string());
-
-
-                let indent_level = if args.len() > 2 {
-                    args.nth(2).unwrap().to_string_lossy().parse::<usize>().unwrap()
-                } else {
-                    0
-                };
-
-                // Call the print_directory_tree function to print the contents of the directory
-                print_directory_tree(Path::new(&directory), indent_level);
+                functions::tree_search()
             }
             "clear" | "cls" => {
                 print!("{}[2J", 27 as char);
@@ -198,10 +135,17 @@ fn main() -> io::Result<()> {
                     println!("{}", line.truecolor(80, 0, 255));
                 }
             }
+            "find" => {
+                functions::find();
+            }
+            "where" => {
+                functions::whereis();
+            }
+            "scan" => {
+                functions::scan();
+            }
             _ => println!("        Unknown command"),
         }
-
     }
-
     Ok(())
 }
