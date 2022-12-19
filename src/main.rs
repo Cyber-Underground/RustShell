@@ -64,13 +64,18 @@ fn main() -> io::Result<()> {
         "",
     ];
 
+    let rshell = [
+        "    rshell > "
+    ];
+
     for line in &lines {
         println!("{}", line.truecolor(80, 0, 255));
     }
 
     let password = "1337";
 
-    print!("        Please enter the password: ");
+
+    print!("    Please enter the password: ");
     io::stdout().flush()?;
 
     let mut user_input = String::new();
@@ -101,7 +106,9 @@ fn main() -> io::Result<()> {
     }
 
     loop {
-        print!("    rshell > ");
+        for line in &rshell {
+            print!("{}", line.truecolor(120, 120, 120));
+        }
         io::stdout().flush()?;
 
         let mut input = String::new();
@@ -126,7 +133,7 @@ fn main() -> io::Result<()> {
                 functions::remove();
             }
             "files" => {
-                functions::tree_search()
+                functions::tree()
             }
             "clear" | "cls" => {
                 print!("{}[2J", 27 as char);
@@ -143,6 +150,9 @@ fn main() -> io::Result<()> {
             }
             "scan" => {
                 functions::scan();
+            }
+            "help" => {
+                functions::help();
             }
             _ => println!("        Unknown command"),
         }
