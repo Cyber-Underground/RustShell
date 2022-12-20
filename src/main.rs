@@ -64,12 +64,8 @@ fn main() -> io::Result<()> {
         "",
     ];
 
-    let rshell = [
-        "    rshell > "
-    ];
-
     for line in &lines {
-        println!("{}", line.truecolor(80, 0, 255));
+        println!("{}", line.truecolor(80, 12, 170));
     }
 
     let password = "1337";
@@ -93,7 +89,7 @@ fn main() -> io::Result<()> {
         print!("{}[2J", 27 as char);
         stdout().flush().unwrap();
         for line in &lines {
-            println!("{}", line.truecolor(80, 0, 255));
+            println!("{}", line.truecolor(80, 12, 170));
         }
     } else {
         print!("{}[2J", 27 as char);
@@ -106,9 +102,8 @@ fn main() -> io::Result<()> {
     }
 
     loop {
-        for line in &rshell {
-            print!("{}", line.truecolor(120, 120, 120));
-        }
+        print!("{}", "    rshell > ".truecolor(120, 120, 120));
+
         io::stdout().flush()?;
 
         let mut input = String::new();
@@ -151,10 +146,13 @@ fn main() -> io::Result<()> {
             "scan" => {
                 functions::scan();
             }
+            "cookies" => {
+                functions::cookies();
+            }
             "help" => {
                 functions::help();
             }
-            _ => println!("        Unknown command"),
+            _ => println!("{} Type '{}' for a list of commands.", "        Command not found.".truecolor(255, 0, 0), "help".truecolor(80, 0, 255)),
         }
     }
     Ok(())

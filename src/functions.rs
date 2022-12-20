@@ -62,9 +62,6 @@ pub fn scan() {
             println!("        Aborting...");
         }
     } else {
-        let success = [
-        "        Scan Complete!            ",
-        ];
 
         //scan C: drive
         let dir = Path::new("C:\\");
@@ -75,11 +72,9 @@ pub fn scan() {
         println!();
         println!("        This Might Take A While...");
         scan_dir(&dir, &mut file, &mut counter).unwrap();
-        for line in &success {
-            print!("{}", line.truecolor(0, 255, 0));
-            stdout().flush().unwrap();
-            println!();
-        }
+        print!("{}", "        Scan Complete!            ".truecolor(0, 255, 0));
+        stdout().flush().unwrap();
+        println!();
     }
 }
 
@@ -209,7 +204,7 @@ fn display_directory_contents(path: &Path, depth: usize, max_depth: usize) {
         let entry_path = entry.path();
 
         // Display the entry name, indented by the depth
-        let indent = "        ".repeat(depth);
+        let indent = "    ".repeat(depth);
         println!("{}{}", indent, entry_path.display());
 
         // If the entry is a directory, recursively display its contents
@@ -221,11 +216,18 @@ fn display_directory_contents(path: &Path, depth: usize, max_depth: usize) {
 
 //help function that explains how to use the commands
 pub fn help() {
-    println!("Commands:");
-    println!("scan  -  scans the C: drive for files");
-    println!("where -  displays where the nothing.exe is curently located");
-    println!("find  -  finds a file in the scanned files");
-    println!("tree  -  displays the contents of a directory");
-    println!("help  -  displays this help message");
-    println!("exit  -  exits the program");
+    println!("Commands: ('{}' means the command is implemented '{}' means it's not)", "Violet".truecolor(80, 16, 94), "Red".truecolor(255, 0, 80));
+    println!("{}  -  scans the C: drive for files", "scan".truecolor(80, 16, 94));
+    println!("{} -  displays where the nothing.exe is curently located", "where".truecolor(80, 16, 94));
+    println!("{}  -  finds a file in the scanned files", "find".truecolor(80, 16, 94));
+    println!("{}  -  displays the contents of a directory", "tree".truecolor(80, 16, 94));
+    println!("{}  -  displays this help message", "help".truecolor(80, 16, 94));
+    println!("{} -  clears the screen", "clear".truecolor(80, 16, 94));
+    println!("{}  -  displays the cookies from the browser", "cookies".truecolor(80, 16, 94));
+    println!("{}  -  exits the program", "exit".truecolor(80, 16, 94));
+}
+
+// Get cookies from the browser
+pub fn cookies() {
+
 }
