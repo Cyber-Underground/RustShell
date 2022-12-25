@@ -5,20 +5,20 @@ use std::fs::File;
 use colored::*;
 use sysinfo::{ProcessExt, System, SystemExt, UserExt, DiskExt};
 
-//help function that explains how to use the commands
 pub fn help() {
     println!("Commands: ('{}' means the command works '{}' means it's not)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94));
     println!();
-    println!("{}      -     displays this help message", "help".truecolor(255, 0, 80));
-    println!("{}      -     exits the program", "exit".truecolor(255, 0, 80));
-    println!("{}     -     clears the screen", "clear".truecolor(255, 0, 80));
-    println!("{}   -     get the cookies from the browser", "cookies".truecolor(80, 16, 94));
-    println!("{}   -     encrypts or decrypts the specified file ", "encrypt".truecolor(80, 16, 94));
-    println!("{}      -     finds a file in the scanned files", "find".truecolor(255, 0, 80));
-    println!("{}    -     removes ", "remove".truecolor(80, 16, 94));
-    println!("{}      -     scans the C: drive for files", "scan".truecolor(255, 0, 80));
-    println!("{}      -     displays the contents of a directory", "tree".truecolor(255, 0, 80));
-    println!("{}     -     displays where the nothing.exe is curently located", "where".truecolor(255, 0, 80));
+    println!("    {}      -     displays this help message", "help".truecolor(255, 0, 80));
+    println!("    {}      -     exits the program", "exit".truecolor(255, 0, 80));
+    println!("    {}     -     clears the screen", "clear".truecolor(255, 0, 80));
+    println!("    {}   -     get the cookies from the browser", "cookies".truecolor(80, 16, 94));
+    println!("    {}   -     encrypts or decrypts the specified file ", "encrypt".truecolor(80, 16, 94));
+    println!("    {}      -     finds a file in the scanned files", "find".truecolor(255, 0, 80));
+    println!("    {}    -     removes ", "remove".truecolor(80, 16, 94));
+    println!("    {}      -     scans the C: drive for files", "scan".truecolor(255, 0, 80));
+    println!("    {}      -     displays the contents of a directory", "tree".truecolor(255, 0, 80));
+    println!("    {}     -     displays where the nothing.exe is curently located", "where".truecolor(255, 0, 80));
+    println!("    {}      -     get info about the target computer", "info".truecolor(255, 0, 80));
 }
 
 pub fn remove() {
@@ -39,8 +39,8 @@ pub fn scan() {
     if path.exists() {
         println!("        File already exists!");
         println!("        Do you want to overwrite it? (y/n)");
-        print!("        > ");
-        stdout().flush().unwrap();
+        print!("{}", "     scan > ".truecolor(120, 120, 120));
+        io::stdout().flush().unwrap();
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         let input = input.trim();
@@ -133,26 +133,37 @@ fn scan_dir(dir: &Path, file: &mut File, counter: &mut i32) -> Result<(), Box<dy
 } 
 
 pub fn find() {
-    //ask the user for the file to search for and search it from C:\ScannedFiles\ScannedFiles.txt
+    //ask the user for the file to search for
     println!("Enter the file to search for:");
+     print!("{}", "     find > ".truecolor(120, 120, 120));
+    io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).expect("Error reading input");
     let input = input.trim();
 
-    let file = File::open("C:\\files\\files.txt").unwrap(); // uncomment this line to search from the C:\ScannedFiles\ScannedFiles.txt file
-    let reader = BufReader::new(file);
+    if std::path::Path::new("C:\\files\\files.txt").exists() {
+        let file = File::open("C:\\files\\files.txt").unwrap();
+        let reader = BufReader::new(file);
 
-    for line in reader.lines() {
-        let line = line.unwrap();
-        if line.contains(input) {
-            println!("{}", line);
+        for line in reader.lines() {
+            let line = line.unwrap();
+            if line.contains(input) {
+                println!("{}", line);
+            }
         }
+    } else {
+        println!("        {} Please run 'scan' first!", "'files.txt' not found!".truecolor(255, 0, 0));
+        println!("        Do you want to run 'scan' now? (y/n)");
+        print!("{}", "     scan > ".truecolor(120, 120, 120));
+        io::stdout().flush().unwrap();
     }
 }
 
 pub fn tree() {
     // Ask the user for a directory to search in
     println!("Enter the directory to search in:");
+    print!("{}", "     tree > ".truecolor(120, 120, 120));
+    io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).expect("Error reading input");
     let input = input.trim();
@@ -223,31 +234,45 @@ fn display_directory_contents(path: &Path, depth: usize, max_depth: usize) {
     }
 }
 
-// Get cookies from the browser
 pub fn cookies() {
 
 }
 
 pub fn info() {
-    println!("        What info do you want to see? ('os', 'memory', 'disks', 'processes', 'users' or 'all')");
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Error reading input");
-    let input = input.trim();
+    loop {
+        println!("        What info do you want to see? ('os', 'memory / mem', 'disks', 'processes / procs', 'users', '*', type 'back' to go back to the main menu)");
+        print!("{}", "     info > ".truecolor(120, 120, 120));
+        io::stdout().flush().unwrap();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).expect("Error reading input");
+        let input = input.trim();
 
-    if input == "os" {
-        sysinfo();
-    } else if input == "memory" {
-        sysmem();
-    } else if input == "disks" {
-        sysdisks();
-    } else if input == "processes" {
-        sysprocs();
-    } else if input == "users" {
-        sysusers();
-    } else if input == "all" {
-        sysall();
-    } else {
-        println!("        Invalid input");
+        match input {
+            "os" => {
+                sysinfo();
+            }
+            "memory" | "mem" => {
+                sysmem();
+            }
+            "disks" => {
+                sysdisks();
+            }
+            "processes" | "procs" => {
+                sysprocs();
+            }
+            "users" => {
+                sysusers();
+            }
+            "all" | "*" => {
+                sysall();
+            }
+            "back" | "exit" => {
+                break;
+            }
+            _ => {
+                println!("        Invalid input");
+            }
+        }
     }
 }
 
@@ -404,6 +429,8 @@ fn sysprocs() {
 pub fn kill() {
     //ask the user for the process to kill by its PID
     println!("        Enter the PID of the process to kill:");
+    print!("{}", "     kill > ".truecolor(120, 120, 120));
+    io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).expect("Error reading input");
     let input = input.trim();

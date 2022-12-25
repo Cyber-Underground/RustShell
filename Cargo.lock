@@ -1270,28 +1270,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nothing"
-version = "0.1.0"
-dependencies = [
- "aes-gcm",
- "ansi_term",
- "base64 0.20.0",
- "colored",
- "hex",
- "libc",
- "os_info",
- "rand",
- "regex",
- "reqwest",
- "rusty_password",
- "rustyline",
- "sysinfo",
- "whoami",
- "winapi",
- "winit",
-]
-
-[[package]]
 name = "ntapi"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1695,6 +1673,28 @@ dependencies = [
  "libc",
  "linux-raw-sys",
  "windows-sys 0.42.0",
+]
+
+[[package]]
+name = "rustshell"
+version = "0.1.0"
+dependencies = [
+ "aes-gcm",
+ "ansi_term",
+ "base64 0.20.0",
+ "colored",
+ "hex",
+ "libc",
+ "os_info",
+ "rand",
+ "regex",
+ "reqwest",
+ "rusty_password",
+ "rustyline",
+ "sysinfo",
+ "whoami",
+ "winapi",
+ "winit",
 ]
 
 [[package]]

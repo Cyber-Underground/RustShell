@@ -1,5 +1,3 @@
-#[allow(non_snake_case)]
-
 use std::io::{self, Write, stdout};
 use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
@@ -12,7 +10,7 @@ mod antivm;
 fn main() -> io::Result<()> {
     // Check if the program is running in a VM
     antivm::kill();
-    
+
     ansi_term::enable_ansi_support().unwrap();
 
     // Clear the command prompt
@@ -48,7 +46,7 @@ fn main() -> io::Result<()> {
     }
 
     loop {
-        print!("{}", "    rshell > ".truecolor(120, 120, 120));
+        print!("{}", "          > ".truecolor(120, 120, 120));
 
         io::stdout().flush()?;
 
@@ -73,7 +71,7 @@ fn main() -> io::Result<()> {
             "rm" | "del" => {
                 functions::remove();
             }
-            "files" => {
+            "tree" => {
                 functions::tree()
             }
             "clear" | "cls" => {
