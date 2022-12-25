@@ -9,10 +9,10 @@ use sysinfo::{ProcessExt, System, SystemExt, UserExt, DiskExt};
 pub fn help() {
     println!("Commands: ('{}' means the command works '{}' means it's not)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94));
     println!();
-    println!("{}      -     exits the program", "exit".truecolor(255, 0, 80));
     println!("{}      -     displays this help message", "help".truecolor(255, 0, 80));
+    println!("{}      -     exits the program", "exit".truecolor(255, 0, 80));
     println!("{}     -     clears the screen", "clear".truecolor(255, 0, 80));
-    println!("{}   -     saves the cookies from the browser", "cookies".truecolor(80, 16, 94));
+    println!("{}   -     get the cookies from the browser", "cookies".truecolor(80, 16, 94));
     println!("{}   -     encrypts or decrypts the specified file ", "encrypt".truecolor(80, 16, 94));
     println!("{}      -     finds a file in the scanned files", "find".truecolor(255, 0, 80));
     println!("{}    -     removes ", "remove".truecolor(80, 16, 94));
