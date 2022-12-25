@@ -1,19 +1,28 @@
 use std::io::{self, Write, stdout, BufRead, BufReader};
-use std::fs;
+use std::{fs, process::{Command}};
 use std::path::Path;
 use std::fs::File;
 use colored::*;
+use sysinfo::{ProcessExt, System, SystemExt, UserExt, DiskExt};
+
+//help function that explains how to use the commands
+pub fn help() {
+    println!("Commands: ('{}' means the command works '{}' means it's not)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94));
+    println!();
+    println!("{}      -     exits the program", "exit".truecolor(255, 0, 80));
+    println!("{}      -     displays this help message", "help".truecolor(255, 0, 80));
+    println!("{}     -     clears the screen", "clear".truecolor(255, 0, 80));
+    println!("{}   -     saves the cookies from the browser", "cookies".truecolor(80, 16, 94));
+    println!("{}   -     encrypts or decrypts the specified file ", "encrypt".truecolor(80, 16, 94));
+    println!("{}      -     finds a file in the scanned files", "find".truecolor(255, 0, 80));
+    println!("{}    -     removes ", "remove".truecolor(80, 16, 94));
+    println!("{}      -     scans the C: drive for files", "scan".truecolor(255, 0, 80));
+    println!("{}      -     displays the contents of a directory", "tree".truecolor(255, 0, 80));
+    println!("{}     -     displays where the nothing.exe is curently located", "where".truecolor(255, 0, 80));
+}
 
 pub fn remove() {
-    /*
-    //ask the file or directory to remove
-    println!("Enter the file or directory to remove: ");
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-    let path = Path::new(&input);
-    fs::remove_dir_all(path).unwrap();
-    println!("Removed: {}", path.display());
-    */
+
 }
 
 pub fn whereis() {
@@ -214,20 +223,244 @@ fn display_directory_contents(path: &Path, depth: usize, max_depth: usize) {
     }
 }
 
-//help function that explains how to use the commands
-pub fn help() {
-    println!("Commands: ('{}' means the command is implemented '{}' means it's not)", "Violet".truecolor(80, 16, 94), "Red".truecolor(255, 0, 80));
-    println!("{}  -  scans the C: drive for files", "scan".truecolor(80, 16, 94));
-    println!("{} -  displays where the nothing.exe is curently located", "where".truecolor(80, 16, 94));
-    println!("{}  -  finds a file in the scanned files", "find".truecolor(80, 16, 94));
-    println!("{}  -  displays the contents of a directory", "tree".truecolor(80, 16, 94));
-    println!("{}  -  displays this help message", "help".truecolor(80, 16, 94));
-    println!("{} -  clears the screen", "clear".truecolor(80, 16, 94));
-    println!("{}  -  displays the cookies from the browser", "cookies".truecolor(80, 16, 94));
-    println!("{}  -  exits the program", "exit".truecolor(80, 16, 94));
-}
-
 // Get cookies from the browser
 pub fn cookies() {
 
+}
+
+pub fn info() {
+    println!("        What info do you want to see? ('os', 'memory', 'disks', 'processes', 'users' or 'all')");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Error reading input");
+    let input = input.trim();
+
+    if input == "os" {
+        sysinfo();
+    } else if input == "memory" {
+        sysmem();
+    } else if input == "disks" {
+        sysdisks();
+    } else if input == "processes" {
+        sysprocs();
+    } else if input == "users" {
+        sysusers();
+    } else if input == "all" {
+        sysall();
+    } else {
+        println!("        Invalid input");
+    }
+}
+
+fn sysall() {
+    let mut sys = System::new_all();
+
+    // First we update all information of our `System` struct.
+    sys.refresh_all();
+
+    // display user name using `users` method but only the current username:
+    println!("        => users:");
+    for user in sys.users() {
+        println!("        {}", user.name());
+    }
+    println!();
+
+    // We display all disks' information:
+    println!("        => disks:");
+    for disk in sys.disks() {
+        println!("        {:?} {:?}", disk.name(), disk.mount_point());
+    }
+    println!();
+
+    println!("        => system:");
+    // RAM and swap information:
+    println!("        total memory: {} bytes", sys.total_memory());
+    println!("        used memory : {} bytes", sys.used_memory());
+    println!();
+
+    // Display system information:
+    println!("        System name:             {:?}", sys.name());
+    println!("        System kernel version:   {:?}", sys.kernel_version());
+    println!("        System OS version:       {:?}", sys.os_version());
+    println!("        System host name:        {:?}", sys.host_name());
+    println!();
+
+    // Display processes ID, name na disk usage:
+    for (pid, process) in sys.processes() {
+        println!("        [{}]    {}", pid, process.name());
+    }
+}
+
+fn sysmem() {
+    let mut sys = System::new_all();
+
+    sys.refresh_all();
+
+    println!("        => system:");
+    // RAM and swap information:
+    println!("        total memory: {} bytes", sys.total_memory());
+    println!("        used memory : {} bytes", sys.used_memory());
+    println!();
+}
+
+fn sysusers() {
+    let mut sys = System::new_all();
+
+    sys.refresh_all();
+
+    println!("=> users:");
+    for user in sys.users() {
+        println!("{} is in {} groups", user.name(), user.groups().len());
+    }
+}
+
+fn sysdisks() {
+    let mut sys = System::new_all();
+
+    sys.refresh_all();
+
+    println!("        => disks:");
+    for disk in sys.disks() {
+        println!("        {:?} {:?}", disk.name(), disk.mount_point());
+    }
+}
+
+fn sysinfo() {
+    let mut sys = System::new_all();
+
+    sys.refresh_all();
+
+    println!("        System name:             {:?}", sys.name());
+    println!("        System kernel version:   {:?}", sys.kernel_version());
+    println!("        System OS version:       {:?}", sys.os_version());
+    println!("        System host name:        {:?}", sys.host_name());
+}
+
+fn sysprocs() {
+    let mut sys = System::new_all();
+
+    sys.refresh_all();
+
+    for (pid, process) in sys.processes() {
+        println!("        [{}]    {}    {}", pid, process.name(), process.exe().display());
+    }
+}
+
+pub fn kill() {
+    //ask the user for the process to kill by its PID
+    println!("        Enter the PID of the process to kill:");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Error reading input");
+    let input = input.trim();
+
+    //convert the input to a u32
+    let pid = match input.parse::<u32>() {
+        Ok(pid) => pid,
+        Err(e) => {
+            println!("        Error parsing PID: {}", e);
+            return;
+        }
+    };
+
+    //kill the process using the easiest way possible
+    match Command::new("taskkill").arg("/PID").arg(pid.to_string()).arg("/F").output() {
+        Ok(_) => {
+            println!("        Process killed successfully.");
+        }
+        Err(e) => {
+            println!("        Error killing process: {}", e);
+        }
+    }
+}
+
+/*
+fn byte_shift(text: Vec<u8>, shift_by: u8, backwards: bool) -> Vec<u8> {
+    text.iter()
+        .map(|byte| {
+                if backwards {
+                    byte.wrapping_sub(shift_by)
+                } else {
+                    byte.wrapping_add(shift_by)
+                }
+            })
+        .collect()
+}
+*/
+pub fn encrypt_file() {
+    /*
+    // ask the user for the file to encrypt
+    println!("Enter the file to encrypt or decrypt:");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Error reading input");
+    let input = input.trim();
+
+    // check if the file exists
+    let path = Path::new(input);
+    if !path.exists() {
+        println!("Error: file does not exist");
+        return;
+    }
+
+    // check if the file has the .enc extension
+    let is_enc = path.extension().map_or(false, |ext| ext == "enc");
+
+    // decrypt if the file has the .enc extension, otherwise encrypt
+    let decrypting = is_enc;
+
+    // read the contents of the file into a buffer
+    let mut contents = Vec::new();
+    File::open(input)
+        .unwrap()
+        .read_to_end(&mut contents)
+        .unwrap();
+
+    // generate a random 32-byte key
+    let mut key = [0u8; 32];
+    OsRng.fill_bytes(&mut key);
+
+    // generate a random 12-byte nonce
+    let mut nonce = [0u8; 12];
+    OsRng.fill_bytes(&mut nonce);
+
+    // create a new cipher
+    let cipher = Aes256Gcm::new(key);
+
+    // create a new buffer to store the encrypted data
+    let mut buffer = Vec::new();
+
+    // encrypt the data in place
+    cipher
+        .encrypt_in_place_detached(&nonce, b"", &mut contents)
+        .unwrap();
+
+    // write the encrypted data to the buffer
+    buffer.write_all(&contents).unwrap();
+
+    // write the nonce to the buffer
+    buffer.write_all(&nonce).unwrap();
+
+    // open the file for writing
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .open(input)
+        .expect("Error opening file for writing");
+
+    // write the encrypted data and nonce to the file
+    file.write_all(&buffer).expect("Error writing to file");
+
+    // change the file extension to .enc if encrypting
+    if !is_enc && !decrypting {
+        let mut new_path = path.to_owned();
+        new_path.set_extension("re");
+        fs::rename(path, new_path).expect("Error renaming file");
+    }
+
+    // change the file extension back to the original if decrypting
+    if is_enc && decrypting {
+        let mut new_path = path.to_owned();
+        new_path.set_extension("");
+        fs::rename(path, new_path).expect("Error renaming file");
+    }
+
+    println!("Successfully done!");
+    */
 }
