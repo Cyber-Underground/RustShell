@@ -277,12 +277,35 @@ fn sysall() {
     println!("        used memory : {} bytes", sys.used_memory());
     println!();
 
-    // Display system information:
-    println!("        System name:             {:?}", sys.name());
-    println!("        System kernel version:   {:?}", sys.kernel_version());
-    println!("        System OS version:       {:?}", sys.os_version());
-    println!("        System host name:        {:?}", sys.host_name());
-    println!();
+    // Run the "systeminfo" command and capture the output
+    let output = Command::new("systeminfo")
+        .output()
+        .expect("Failed to run systeminfo command");
+
+    // Convert the output to a string
+    let output_string = String::from_utf8(output.stdout).expect("Failed to convert output to string");
+
+    // Split the output into lines
+    let lines: Vec<&str> = output_string.split('\n').collect();
+
+    // Find the "OS Name" and "OS Version" lines
+    let os_name_line = lines.iter().find(|line| line.starts_with("OS Name")).expect("OS Name not found");
+    let os_version_line = lines.iter().find(|line| line.starts_with("OS Version")).expect("OS Version not found");
+
+    // Extract the OS name and version from the lines
+    let os_name = os_name_line.split(':').nth(1).expect("Failed to extract OS name");
+    let os_version = os_version_line.split(':').nth(1).expect("Failed to extract OS version");
+
+    // Find the "Host Name" line
+    let host_name_line = lines.iter().find(|line| line.starts_with("Host Name")).expect("Host Name not found");
+
+    // Extract the host name from the line
+    let host_name = host_name_line.split(':').nth(1).expect("Failed to extract host name");
+
+    // Print the OS name, version, and host name
+    println!("        OS Name: {}", os_name);
+    println!("        OS Version: {}", os_version);
+    println!("        Host Name: {}", host_name);
 
     // Display processes ID, name na disk usage:
     for (pid, process) in sys.processes() {
@@ -291,15 +314,27 @@ fn sysall() {
 }
 
 fn sysmem() {
-    let mut sys = System::new_all();
+    // Run the "systeminfo" command and capture the output
+    let output = Command::new("systeminfo")
+        .output()
+        .expect("Failed to run systeminfo command");
 
-    sys.refresh_all();
+    // Convert the output to a string
+    let output_string = String::from_utf8(output.stdout).expect("Failed to convert output to string");
 
-    println!("        => system:");
-    // RAM and swap information:
-    println!("        total memory: {} bytes", sys.total_memory());
-    println!("        used memory : {} bytes", sys.used_memory());
-    println!();
+    // Split the output into lines
+    let lines: Vec<&str> = output_string.split('\n').collect();
+
+    // Find the "Total Memory" line
+    let totalmem_line = lines.iter().find(|line| line.starts_with("Total Physical Memory")).expect("Host Name not found");
+    let freemem_line = lines.iter().find(|line| line.starts_with("Available Physical Memory")).expect("Host Name not found");
+
+    // Extract the total memory from the line
+    let totalmem = totalmem_line.split(':').nth(1).expect("Failed to extract host name");
+    let freemem = freemem_line.split(':').nth(1).expect("Failed to extract host name");
+
+    println!("        Total Memory: {}", totalmem);
+    println!("        Available Memory: {}", freemem);
 }
 
 fn sysusers() {
@@ -325,14 +360,35 @@ fn sysdisks() {
 }
 
 fn sysinfo() {
-    let mut sys = System::new_all();
+    // Run the "systeminfo" command and capture the output
+    let output = Command::new("systeminfo")
+        .output()
+        .expect("Failed to run systeminfo command");
 
-    sys.refresh_all();
+    // Convert the output to a string
+    let output_string = String::from_utf8(output.stdout).expect("Failed to convert output to string");
 
-    println!("        System name:             {:?}", sys.name());
-    println!("        System kernel version:   {:?}", sys.kernel_version());
-    println!("        System OS version:       {:?}", sys.os_version());
-    println!("        System host name:        {:?}", sys.host_name());
+    // Split the output into lines
+    let lines: Vec<&str> = output_string.split('\n').collect();
+
+    // Find the "OS Name" and "OS Version" lines
+    let os_name_line = lines.iter().find(|line| line.starts_with("OS Name")).expect("OS Name not found");
+    let os_version_line = lines.iter().find(|line| line.starts_with("OS Version")).expect("OS Version not found");
+
+    // Extract the OS name and version from the lines
+    let os_name = os_name_line.split(':').nth(1).expect("Failed to extract OS name");
+    let os_version = os_version_line.split(':').nth(1).expect("Failed to extract OS version");
+
+    // Find the "Host Name" line
+    let host_name_line = lines.iter().find(|line| line.starts_with("Host Name")).expect("Host Name not found");
+
+    // Extract the host name from the line
+    let host_name = host_name_line.split(':').nth(1).expect("Failed to extract host name");
+
+    // Print the OS name, version, and host name
+    println!("        OS Name: {}", os_name);
+    println!("        OS Version: {}", os_version);
+    println!("        Host Name: {}", host_name);
 }
 
 fn sysprocs() {
