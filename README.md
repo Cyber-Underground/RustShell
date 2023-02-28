@@ -9,20 +9,19 @@ RustShell is very simple a command line program that allows you to perform vario
 ## Upcoming Features and updates
 
 -   `A Listener`
--	`Better Encryptor`
+-   `Better Encryptor`
 
 ## Commands
 
 RustShell offers a number of commands that you can use to interact with your computer:
 
 -   `tree` : list all files and folders in the specified directory in a tree-like way
--   `clear` or `cls` : clear the command prompt
+-   `clear` : clear the command prompt
 -   `find` : search for a file or folder
 -   `where` : prints the current directory of the R(ust)Shell
 -   `scan` : scans the C: drive and saves every path except the blacklisted in a text file in 'C:\files\files.txt'
 -   `kill` : kills any process running using the PID
--	`encrypt`: encrypts the specified file
--	`decrypt`: decrypts the specified file
+-   `encrypt`/`decrypt`: encrypts/decrypts the specified file
 -   `info` : gives info on the computer (disks, total memory, used memory, system type, system version, etc.)
 -   `help` : display a list of available commands
 -   `exit` : exits the program
