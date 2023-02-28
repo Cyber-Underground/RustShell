@@ -21,7 +21,7 @@ RustShell offers a number of commands that you can use to interact with your com
 -   `where` : prints the current directory of the RustShell
 -   `scan` : scans the C: drive and saves every path except the blacklisted in a text file in 'C:\files\files.txt'
 -   `kill` : kills any process running using the PID
--   `encrypt` / `decrypt`: encrypts/decrypts the specified file
+-   `encrypt` / `decrypt`: encrypts / decrypts the specified file
 -   `info` : gives info on the computer (disks, total memory, used memory, system type, system version, etc.)
 -   `help` : display a list of available commands
 -   `exit` : exits the program
