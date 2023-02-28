@@ -1,24 +1,32 @@
 [package]
-name = "rustshell"
+name = "RustShell"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-winit = "0.27.5"
-winapi = { version = "0.3.9", features = ["winuser","wincontypes","wincon"] }
-rusty_password = "0.1.2"
-colored = "2.0.0"
-base64 = "0.20.0"
 ansi_term = "^0.12.1"
-rustyline = "*"
-rand = "0.8.4"
+anyhow = "1.0"
 aes-gcm = "0.10.0"
+base64 = "0.20.0"
+chacha20poly1305 = { version = "0.9.0", features = ["stream"] }
+colored = "2.0.0"
 hex = "0.4.3"
-reqwest = "0.11.13"
-os_info = "3.5.1"
-sysinfo = "0.20.4"
-whoami = "1.2.3"
 libc = "0.2.108"
+os_info = "3.5.1"
+rand = "0.8.4"
+reqwest = "0.11.13"
 regex = "1.5.4"
+rusqlite = { version = "0.28.0", features = ["bundled"] }
+rust-crypto = "^0.2"
+rusty_password = "0.1.2"
+rustyline = "*"
+sysinfo = "0.20.4"
+winit = "0.27.5"
+whoami = "1.2.3"
+winapi = { version = "0.3.9", features = ["winuser","wincontypes","wincon"] }
+winreg = "0.7.0"
+
+[build-dependencies]
+winres = "0.1.12"

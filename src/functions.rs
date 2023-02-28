@@ -1,12 +1,14 @@
-use std::io::{self, Write, stdout, BufRead, BufReader};
-use std::{fs, process::{Command}};
-use std::path::Path;
-use std::fs::File;
+use std::io::{self, Write, Read, stdout, BufRead, BufReader};
+use std::{fs::{File, self}, env, process::{Command}};
+use std::path::{Path};
 use colored::*;
 use sysinfo::{ProcessExt, System, SystemExt, UserExt, DiskExt};
+use std::os::windows::fs::OpenOptionsExt;
+use anyhow::{anyhow, Result};
+use chacha20poly1305::{aead::{stream, NewAead}, XChaCha20Poly1305,};
 
 pub fn help() {
-    println!("Commands: ('{}' means the command works '{}' means it's not)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94));
+    println!("Commands: ('{}' means the command works '{}' means it's not and {} means it partially works)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94), "Yellow".truecolor(255, 255, 0));
     println!();
     println!("    {}      -     displays this help message", "help".truecolor(255, 0, 80));
     println!("    {}      -     exits the program", "exit".truecolor(255, 0, 80));
@@ -22,6 +24,24 @@ pub fn help() {
 }
 
 pub fn remove() {
+    // remove the specified file or directory
+    // if the file or directory doesn't exist, print 'folder/file does not exist'
+    // if the file or directory is protected, print 'folder/file is protected'
+    // if the file or directory is removed, print 'folder/file removed'
+    println!("Enter directory or path to file to remove:");
+    print!("{}", "     rm > ".truecolor(120, 120, 120));
+    io::stdout().flush().unwrap();
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+    let input = input.trim();
+    println!();
+    let path = Path::new(input);
+    if path.exists() {
+        fs::remove_dir_all(path).unwrap();
+        println!("        Removed: {}", path.display());
+    } else {
+        println!("        Folder/File does not exist!");
+    }   
 
 }
 
@@ -234,9 +254,34 @@ fn display_directory_contents(path: &Path, depth: usize, max_depth: usize) {
     }
 }
 
-pub fn cookies() {
+/*
+pub fn cookies() -> Result<(), Box<dyn std::error::Error>> {
+    // ask the user for the browser to search from
+    println!("Enter the browser to search from:");
+    print!("{}", "     cookies > ".truecolor(120, 120, 120));
+    io::stdout().flush().unwrap();
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Error reading input");
+    let input = input.trim();
 
+    let mut parts = input.splitn(2, ' ');
+    let command = parts.next().unwrap_or("");
+    
+    match command {
+        "firefox" => {
+            // Get the cookies from Firefox
+            // create a file to save the cookies to
+            File::create("cookies.txt").unwrap();
+            let file_path = "cookies.txt";
+            println!("Cookies saved to {}", file_path);
+        }
+        _ => {
+            println!("        {} Please enter a valid browser!", "Invalid browser!".truecolor(255, 0, 0));
+        }
+    }
+    Ok(())
 }
+*/
 
 pub fn info() {
     loop {
@@ -462,95 +507,123 @@ pub fn kill() {
     }
 }
 
-/*
-fn byte_shift(text: Vec<u8>, shift_by: u8, backwards: bool) -> Vec<u8> {
-    text.iter()
-        .map(|byte| {
-                if backwards {
-                    byte.wrapping_sub(shift_by)
-                } else {
-                    byte.wrapping_add(shift_by)
-                }
-            })
-        .collect()
+pub fn disable() {
+    //delete the program
+    match fs::remove_file(env::current_exe().unwrap()) {
+        Ok(_) => {
+            println!("        Program deleted successfully.");
+        }
+        Err(e) => {
+            println!("        Error deleting program: {}", e);
+        }
+    }
 }
-*/
-pub fn encrypt_file() {
-    /*
-    // ask the user for the file to encrypt
-    println!("Enter the file to encrypt or decrypt:");
+
+pub fn elevate() {
+    // Get the path of the current executable
+    let exe_path = env::current_exe().unwrap();
+
+    // Open the current executable as an administrator
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).read(true).create(true).attributes(0x00002080);  // FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_SYSTEM
+    let mut command = String::from("runas /trustlevel:0x20000 ");
+    command.push_str(&format!("\"{}\"", exe_path.to_string_lossy()));
+    let mut process = std::process::Command::new("cmd.exe")
+        .arg("/C")
+        .arg(command)
+        .spawn()
+        .unwrap();
+    process.wait().unwrap();
+
+    unsafe {
+        let class_name = std::ffi::CString::new(exe_path.file_stem().unwrap().to_string_lossy().as_ref()).unwrap();
+        let hwnds = winapi::um::winuser::FindWindowExA(std::ptr::null_mut(), std::ptr::null_mut(), class_name.as_ptr(), std::ptr::null());
+        if hwnds != std::ptr::null_mut() {
+            winapi::um::winuser::PostMessageA(hwnds, winapi::um::winuser::WM_QUIT, 0, 0);
+        }
+    }
+    
+    std::process::exit(0);
+}
+
+pub fn encrypt(
+    source_file_path: &str,
+    dist_file_path: &str,
+    key: &[u8; 32],
+    nonce: &[u8; 19],
+) -> Result<(), anyhow::Error> {
+    //ask the user to confirm the encryption
+    println!("        Are you sure you want to encrypt this file? (y/n)");
+    print!("{}", "  encrypt > ".truecolor(120, 120, 120));
+    io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).expect("Error reading input");
     let input = input.trim();
 
-    // check if the file exists
-    let path = Path::new(input);
-    if !path.exists() {
-        println!("Error: file does not exist");
-        return;
+    //if the user doesn't confirm, return
+    if input != "y" {
+        println!("        Encryption cancelled.");
+        return Ok(());
+    } else {
+        println!("        File encrypted");
+    }
+    let aead = XChaCha20Poly1305::new(key.as_ref().into());
+    let mut stream_encryptor = stream::EncryptorBE32::from_aead(aead, nonce.as_ref().into());
+
+    const BUFFER_LEN: usize = 500;
+    let mut buffer = [0u8; BUFFER_LEN];
+
+    let mut source_file = File::open(source_file_path)?;
+    let mut dist_file = File::create(dist_file_path)?;
+
+    loop {
+        let read_count = source_file.read(&mut buffer)?;
+
+        if read_count == BUFFER_LEN {
+            let ciphertext = stream_encryptor
+                .encrypt_next(buffer.as_slice())
+                .map_err(|err| anyhow!("Encrypting large file: {}", err))?;
+            dist_file.write(&ciphertext)?;
+        } else {
+            let ciphertext = stream_encryptor
+                .encrypt_last(&buffer[..read_count])
+                .map_err(|err| anyhow!("Encrypting large file: {}", err))?;
+            dist_file.write(&ciphertext)?;
+            break;
+        }
     }
 
-    // check if the file has the .enc extension
-    let is_enc = path.extension().map_or(false, |ext| ext == "enc");
+    Ok(())
+}
 
-    // decrypt if the file has the .enc extension, otherwise encrypt
-    let decrypting = is_enc;
+pub fn decrypt(encrypted_file_path: &str, dist: &str, key: &[u8; 32], nonce: &[u8; 19],) -> Result<(), anyhow::Error> {
+    let aead = XChaCha20Poly1305::new(key.as_ref().into());
+    let mut stream_decryptor = stream::DecryptorBE32::from_aead(aead, nonce.as_ref().into());
 
-    // read the contents of the file into a buffer
-    let mut contents = Vec::new();
-    File::open(input)
-        .unwrap()
-        .read_to_end(&mut contents)
-        .unwrap();
+    const BUFFER_LEN: usize = 500 + 16;
+    let mut buffer = [0u8; BUFFER_LEN];
 
-    // generate a random 32-byte key
-    let mut key = [0u8; 32];
-    OsRng.fill_bytes(&mut key);
+    let mut encrypted_file = File::open(encrypted_file_path)?;
+    let mut dist_file = File::create(dist)?;
 
-    // generate a random 12-byte nonce
-    let mut nonce = [0u8; 12];
-    OsRng.fill_bytes(&mut nonce);
+    loop {
+        let read_count = encrypted_file.read(&mut buffer)?;
 
-    // create a new cipher
-    let cipher = Aes256Gcm::new(key);
-
-    // create a new buffer to store the encrypted data
-    let mut buffer = Vec::new();
-
-    // encrypt the data in place
-    cipher
-        .encrypt_in_place_detached(&nonce, b"", &mut contents)
-        .unwrap();
-
-    // write the encrypted data to the buffer
-    buffer.write_all(&contents).unwrap();
-
-    // write the nonce to the buffer
-    buffer.write_all(&nonce).unwrap();
-
-    // open the file for writing
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .open(input)
-        .expect("Error opening file for writing");
-
-    // write the encrypted data and nonce to the file
-    file.write_all(&buffer).expect("Error writing to file");
-
-    // change the file extension to .enc if encrypting
-    if !is_enc && !decrypting {
-        let mut new_path = path.to_owned();
-        new_path.set_extension("re");
-        fs::rename(path, new_path).expect("Error renaming file");
+        if read_count == BUFFER_LEN {
+            let plaintext = stream_decryptor
+                .decrypt_next(buffer.as_slice())
+                .map_err(|err| anyhow!("Decrypting large file: {}", err))?;
+            dist_file.write(&plaintext)?;
+        } else if read_count == 0 {
+            break;
+        } else {
+            let plaintext = stream_decryptor
+                .decrypt_last(&buffer[..read_count])
+                .map_err(|err| anyhow!("Decrypting large file: {}", err))?;
+            dist_file.write(&plaintext)?;
+            break;
+        }
     }
 
-    // change the file extension back to the original if decrypting
-    if is_enc && decrypting {
-        let mut new_path = path.to_owned();
-        new_path.set_extension("");
-        fs::rename(path, new_path).expect("Error renaming file");
-    }
-
-    println!("Successfully done!");
-    */
+    Ok(())
 }
