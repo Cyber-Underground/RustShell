@@ -8,15 +8,15 @@ use anyhow::{anyhow, Result};
 use chacha20poly1305::{aead::{stream, NewAead}, XChaCha20Poly1305,};
 
 pub fn help() {
-    println!("Commands: ('{}' means the command works '{}' means it's not and {} means it partially works)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94), "Yellow".truecolor(255, 255, 0));
+    println!("Commands: ('{}' means the command works '{}' means it's not and {} means it partially works)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94), "Yellow".truecolor(200, 220, 0));
     println!();
     println!("    {}      -     displays this help message", "help".truecolor(255, 0, 80));
     println!("    {}      -     exits the program", "exit".truecolor(255, 0, 80));
     println!("    {}     -     clears the screen", "clear".truecolor(255, 0, 80));
     println!("    {}   -     get the cookies from the browser", "cookies".truecolor(80, 16, 94));
-    println!("    {}   -     encrypts or decrypts the specified file ", "encrypt".truecolor(80, 16, 94));
+    println!("    {}   -     encrypts or decrypts the specified file ", "encrypt".truecolor(200, 220, 0));
     println!("    {}      -     finds a file in the scanned files", "find".truecolor(255, 0, 80));
-    println!("    {}    -     removes ", "remove".truecolor(80, 16, 94));
+    println!("    {}    -     removes the specified file / folder", "remove".truecolor(200, 220, 0));
     println!("    {}      -     scans the C: drive for files", "scan".truecolor(255, 0, 80));
     println!("    {}      -     displays the contents of a directory", "tree".truecolor(255, 0, 80));
     println!("    {}     -     displays where the nothing.exe is curently located", "where".truecolor(255, 0, 80));
@@ -25,10 +25,7 @@ pub fn help() {
 
 pub fn remove() {
     // remove the specified file or directory
-    // if the file or directory doesn't exist, print 'folder/file does not exist'
-    // if the file or directory is protected, print 'folder/file is protected'
-    // if the file or directory is removed, print 'folder/file removed'
-    println!("Enter directory or path to file to remove:");
+    println!("Enter path to directory/file to remove:");
     print!("{}", "     rm > ".truecolor(120, 120, 120));
     io::stdout().flush().unwrap();
     let mut input = String::new();
@@ -553,7 +550,7 @@ pub fn encrypt(
     nonce: &[u8; 19],
 ) -> Result<(), anyhow::Error> {
     //ask the user to confirm the encryption
-    println!("        Are you sure you want to encrypt this file? (y/n)");
+    println!("        What file do you want to encrypt?");
     print!("{}", "  encrypt > ".truecolor(120, 120, 120));
     io::stdout().flush().unwrap();
     let mut input = String::new();
