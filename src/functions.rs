@@ -308,7 +308,7 @@ pub fn info() {
             "all" | "*" => {
                 sysall();
             }
-            "back" | "exit" => {
+            "back" | "exit" | "quit" => {
                 break;
             }
             _ => {
