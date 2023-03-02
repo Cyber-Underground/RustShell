@@ -7,6 +7,7 @@ edition = "2021"
 
 [build-dependencies]
 winres = "0.1.12"
+windows = "0.10.0"
 
 [dependencies]
 ansi_term = "^0.12.1"
