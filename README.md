@@ -5,11 +5,12 @@ RustShell is very simple a command line program that allows you to perform vario
 ## Features
 
 -   `AntiVM` : RustShell includes a very simple AntiVM
+-   `Hide Window` : There is an "option" to hide the cmd window when you start RustShell
+-   `Encryptor` : RustShell also has a simple, but powerful encryptor
 
 ## Upcoming Features and updates
 
 -   `A Listener`
--   `Better Encryptor`
 
 ## Commands
 

