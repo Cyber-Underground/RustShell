@@ -4,13 +4,6 @@ use std::path::{Path};
 use colored::*;
 use sysinfo::{ProcessExt, System, SystemExt, UserExt, DiskExt};
 use anyhow:: Result;
-use bindings::Windows::Win32::System::SystemServices::PWSTR;
-use bindings::Windows::Win32::UI::Shell::ShellExecuteW;
-use bindings::Windows::Win32::UI::WindowsAndMessaging::HWND;
-
-mod bindings {
-    windows::include_bindings!();
-}
 
 pub fn help() {
     println!("Commands: ('{}' means the command works '{}' means it's not and {} means it partially works)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94), "Yellow".truecolor(200, 220, 0));
@@ -35,11 +28,12 @@ pub fn remove() {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
     let input = input.trim();
-    println!();
-    match fs::remove_dir_all(input) {
-        Ok(_) => println!("        Removed: {}", input),
-        Err(e) => println!("        Error: {}", e),
-    };
+    println!();   
+    if let Err(e) = fs::remove_dir_all(input) {
+        println!("        Error: {}", e);
+    } else {
+        println!("        Removed: {}", input);
+    }
 }
 
 pub fn whereis() {
@@ -513,12 +507,5 @@ pub fn disable() {
 }
 
 pub fn elevate() {
-    windows::initialize_sta().unwrap();
-    let r = unsafe { 
-        ShellExecuteW(HWND::NULL, "runas", "rustshell.exe", PWSTR::NULL, PWSTR::NULL, 1) 
-    };
-    if r.0 < 32 {
-        println!("error: {:?}", r);
-    }
-    std::process::exit(0);
+    
 }

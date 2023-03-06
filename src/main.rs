@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![windows_subsystem = "windows"]
 
 use std::io::{self, Write, Read, stdout, BufRead, BufReader, prelude::*};
 use std::ffi::OsStr;
@@ -39,28 +40,28 @@ fn main() -> Result<(), anyhow::Error> {
         .output()
         .expect("Failed to run systeminfo command");
 
-// convert the output to a string and trim leading/trailing whitespaces
-let output_string = String::from_utf8(output.stdout)
-    .expect("Failed to convert output to string")
-    .trim()
-    .to_string();
+    // convert the output to a string and trim leading/trailing whitespaces
+    let output_string = String::from_utf8(output.stdout)
+        .expect("Failed to convert output to string")
+        .trim()
+        .to_string();
 
-     // split the output string into lines
-    let lines: Vec<&str> = output_string.split('\n').collect();
+        // split the output string into lines
+        let lines: Vec<&str> = output_string.split('\n').collect();
 
-// find the HostName line and extract the hostname
-let host_line = lines
-    .iter()
-    .find(|line| line.starts_with("Host Name"))
-    .expect("Host Name not found");
-let host = host_line.split(':').nth(1).unwrap_or("").trim();
+    // find the HostName line and extract the hostname
+    let host_line = lines
+        .iter()
+        .find(|line| line.starts_with("Host Name"))
+        .expect("Host Name not found");
+    let host = host_line.split(':').nth(1).unwrap_or("").trim();
 
-// check if 'OS Name' was appended to the hostname
-let host = if host.ends_with("OS Name") {
-    &host[..(host.len() - 6)]
-} else {
-    host
-};
+    // check if 'OS Name' was appended to the hostname
+    let host = if host.ends_with("OS Name") {
+        &host[..(host.len() - 6)]
+    } else {
+        host
+    };
 
 
     let mut key = [0u8; 32];
