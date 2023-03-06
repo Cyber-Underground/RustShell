@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![windows_subsystem = "windows"]
 
 use std::io::{self, Write, Read, stdout, BufRead, BufReader, prelude::*};
 use std::ffi::OsStr;
@@ -139,7 +138,7 @@ fn main() -> Result<(), anyhow::Error> {
     }
 
     loop {
-        print!("{}", "          > ".truecolor(120, 120, 120));
+        print!("{}", "        > ".truecolor(120, 120, 120));
 
         io::stdout().flush()?;
 
