@@ -11,7 +11,7 @@ RustShell is very simple a command line program that allows you to perform vario
 
 ## Upcoming Features and updates
 
--   `A Listener`
+-   `A Listener` : With a listener you can send commands and execute them remotely
 
 ## Commands
 
