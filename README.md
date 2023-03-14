@@ -7,6 +7,7 @@ RustShell is very simple a command line program that allows you to perform vario
 -   `AntiVM` : RustShell includes a very simple AntiVM
 -   `Hide Window` : There is an "option" to hide the cmd window when you start RustShell
 -   `Encryptor` : RustShell also has a simple, but powerful encryptor
+-   `cmd` : You can use cmd commands and arguments in RustShell (you can also use powershell commands by typing a "one liner" e.g. `powershell sl C:\`)
 
 ## Upcoming Features and updates
 

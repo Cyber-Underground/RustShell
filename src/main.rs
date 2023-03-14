@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::io::{self, Write, Read, stdout};
+use std::{io::{self, Write, Read, stdout}, process::{Command}};
 use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 use winapi::um::wincon::SetConsoleTitleW;
@@ -36,8 +36,6 @@ fn main() -> Result<(), anyhow::Error> {
   let mut nonce = [0u8; 19];
   OsRng.fill_bytes(&mut key);
   OsRng.fill_bytes(&mut nonce);
-
-  println!("{}", hex::encode(key));
 
   let key = hex::encode(key);
   let nonce = hex::encode(nonce);
@@ -183,7 +181,21 @@ fn main() -> Result<(), anyhow::Error> {
       "elevate" => {
         functions::elevate();
       }
-      _ => println!("{} Type '{}' for a list of commands.", "        Command not found.".truecolor(255, 0, 0), "help".truecolor(80, 0, 255)),
+      _ => {
+        let mut parts = input.split_whitespace();
+        if let Some(command) = parts.next() {
+          match Command::new(command).args(parts).output() {
+            Ok(output) => {
+              // Print the output of the command
+              println!("{}", String::from_utf8_lossy(&output.stdout));
+            },
+            Err(error) => {
+              // Print the error message
+              eprintln!("    Failed to run command: {}", error);
+            }
+          }
+        }
+      }
     }
   }
   Ok(())
