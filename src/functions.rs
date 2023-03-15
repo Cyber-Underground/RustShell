@@ -6,34 +6,34 @@ use sysinfo::{ProcessExt, System, SystemExt, UserExt, DiskExt};
 use anyhow:: Result;
 
 pub fn help() {
-    println!("Commands: ('{}' means the command works '{}' means it's not and {} means it partially works)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94), "Yellow".truecolor(200, 220, 0));
-    println!();
-    println!("    {}      -     displays this help message", "help".truecolor(255, 0, 80));
-    println!("    {}      -     exits the program", "exit".truecolor(255, 0, 80));
-    println!("    {}     -     clears the screen", "clear".truecolor(255, 0, 80));
-    println!("    {}   -     get the cookies from the browser", "cookies".truecolor(80, 16, 94));
-    println!("    {}   -     encrypts or decrypts the specified file ", "encrypt".truecolor(200, 220, 0));
-    println!("    {}      -     finds a file in the scanned files", "find".truecolor(255, 0, 80));
-    println!("    {}    -     removes the specified file / folder", "remove".truecolor(200, 220, 0));
-    println!("    {}      -     scans the C: drive for files", "scan".truecolor(255, 0, 80));
-    println!("    {}      -     displays the contents of a directory", "tree".truecolor(255, 0, 80));
-    println!("    {}     -     displays where the nothing.exe is curently located", "where".truecolor(255, 0, 80));
-    println!("    {}      -     get info about the target computer", "info".truecolor(255, 0, 80));
+  println!("Commands: ('{}' means the command works '{}' means it's not and {} means it partially works)", "Red".truecolor(255, 0, 80), "Violet".truecolor(80, 16, 94), "Yellow".truecolor(200, 220, 0));
+  println!();
+  println!("    {}      -     displays this help message", "help".truecolor(255, 0, 80));
+  println!("    {}      -     exits the program", "exit".truecolor(255, 0, 80));
+  println!("    {}     -     clears the screen", "clear".truecolor(255, 0, 80));
+  println!("    {}   -     get the cookies from the browser", "cookies".truecolor(80, 16, 94));
+  println!("    {}   -     encrypts or decrypts the specified file ", "encrypt".truecolor(200, 220, 0));
+  println!("    {}      -     finds a file in the scanned files", "find".truecolor(255, 0, 80));
+  println!("    {}    -     removes the specified file / folder", "remove".truecolor(200, 220, 0));
+  println!("    {}      -     scans the C: drive for files", "scan".truecolor(255, 0, 80));
+  println!("    {}      -     displays the contents of a directory", "tree".truecolor(255, 0, 80));
+  println!("    {}     -     displays where the nothing.exe is curently located", "where".truecolor(255, 0, 80));
+  println!("    {}      -     get info about the target computer", "info".truecolor(255, 0, 80));
 }
 
 pub fn remove() {
-    println!("Enter path to directory/file to remove:");
-    print!("{}", "     rm > ".truecolor(120, 120, 120));
-    io::stdout().flush().unwrap();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-    let input = input.trim();
-    println!();   
-    if let Err(e) = fs::remove_dir_all(input) {
-        println!("        Error: {}", e);
-    } else {
-        println!("        Removed: {}", input);
-    }
+  println!("Enter path to directory/file to remove:");
+  print!("{}", "     rm > ".truecolor(120, 120, 120));
+  io::stdout().flush().unwrap();
+  let mut input = String::new();
+  io::stdin().read_line(&mut input).unwrap();
+  let input = input.trim();
+  println!();   
+  if let Err(e) = fs::remove_dir_all(input) {
+    println!("        Error: {}", e);
+  } else {
+    println!("        Removed: {}", input);
+  }
 }
 
 pub fn whereis() {

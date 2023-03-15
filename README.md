@@ -45,3 +45,9 @@ $ cargo run
 ```
 
 If you don't have rust or cargo installed on your system you can follow [this tutorial](https://doc.rust-lang.org/cargo/getting-started/installation.html)
+
+## How to improve functions
+
+`encrypt` : at the moment the function deletes the original file and replaces it with the encrypted file. I think it would be better to alter the data inside the original file.
+
+`scan` : at the moment the function saves the file locations in a text file. It should be faster to save it to memory.
