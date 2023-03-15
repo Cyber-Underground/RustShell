@@ -20,7 +20,7 @@ fn main() -> Result<(), anyhow::Error> {
   // hide_window::hide_console_window();
 
   // Set the cmd window title
-  let new_title = "Runtime Broker";
+  let new_title = "RustShell";
   let title: Vec<u16> = OsStr::new(new_title)
     .encode_wide()
     .chain(Some(0).into_iter())
